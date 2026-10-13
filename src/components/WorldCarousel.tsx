@@ -4,7 +4,7 @@ import { Sparkles } from '@react-three/drei'
 import { MathUtils } from 'three'
 import { CarouselItem } from './CarouselItem'
 import { WORLD_SCENES } from './worlds'
-import { drag, useCarousel } from '../store'
+import { drag, useCarousel, useCurrentWorld } from '../store'
 import { WORLDS } from '../worlds'
 
 const reducedMotion =
@@ -13,6 +13,12 @@ const reducedMotion =
 
 const wrap = (value: number, size: number) =>
   ((((value + size / 2) % size) + size) % size) - size / 2
+
+// Own component so only the sparkles re-render when the world changes.
+function ThemedSparkles() {
+  const accent = useCurrentWorld().accent
+  return <Sparkles count={40} scale={[10, 5, 4]} size={3} speed={0.3} color={accent} />
+}
 
 function Scene() {
   const width = useThree((s) => s.viewport.width)
@@ -36,7 +42,7 @@ function Scene() {
     <>
       <hemisphereLight args={['#cfe3ff', '#20152e', 0.5]} />
       <directionalLight position={[3, 3, 4]} intensity={2.4} />
-      <Sparkles count={40} scale={[10, 5, 4]} size={3} speed={0.3} color="#d9a441" />
+      <ThemedSparkles />
       {WORLDS.map((world, i) => {
         const WorldScene = WORLD_SCENES[world.id]
         return (

@@ -1,5 +1,6 @@
 import { useEffect, useRef, type CSSProperties } from 'react'
 import { useDrag } from '@use-gesture/react'
+import { Backdrop } from './Backdrop'
 import { WorldCarousel } from './WorldCarousel'
 import { drag, useCarousel, useCurrentWorld } from '../store'
 import { GAME_TITLE, WORLDS } from '../worlds'
@@ -38,7 +39,18 @@ export function Menu() {
   )
 
   return (
-    <main className="menu" style={{ '--bg-glow': world.glow } as CSSProperties}>
+    <main
+      className="menu"
+      data-world={world.id}
+      style={
+        {
+          '--bg-glow': world.glow,
+          '--accent': world.accent,
+          '--accent-text': world.accentText,
+        } as CSSProperties
+      }
+    >
+      <Backdrop active={world.id} />
       <h1 className="title">{GAME_TITLE}</h1>
 
       <div className="stage" ref={stage}>
@@ -54,6 +66,15 @@ export function Menu() {
         <p className="world-name">{world.name}</p>
         <p className="world-tagline">{world.tagline}</p>
       </div>
+
+      <dl className="world-facts">
+        {world.facts.map((fact) => (
+          <div key={fact.label} className="fact">
+            <dt>{fact.label}</dt>
+            <dd>{fact.value}</dd>
+          </div>
+        ))}
+      </dl>
 
       <nav className="actions" aria-label="Main menu">
         <button type="button" className="btn btn-primary">Play</button>
