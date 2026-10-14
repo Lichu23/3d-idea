@@ -4,12 +4,16 @@ import { Sparkles } from '@react-three/drei'
 import { MathUtils } from 'three'
 import { CarouselItem } from './CarouselItem'
 import { WORLD_SCENES } from './worlds'
-import { drag, useCarousel, useCurrentWorld } from '../store'
+import { reducedMotion } from '../reducedMotion'
+import { drag, useCarousel, useCurrentWorld, useGame } from '../store'
 import { WORLDS } from '../worlds'
 
-const reducedMotion =
-  typeof window !== 'undefined' &&
-  window.matchMedia('(prefers-reduced-motion: reduce)').matches
+const CAMERA_Z = 6
+/** Close enough that the planet fills the stage just before the board appears. */
+const DIVE_Z = 1.5
+const DIVE_SECONDS = 1.4
+
+const easeInCubic = (t: number) => t * t * t
 
 const wrap = (value: number, size: number) =>
   ((((value + size / 2) % size) + size) % size) - size / 2
@@ -24,10 +28,20 @@ function Scene() {
   const width = useThree((s) => s.viewport.width)
   const spacing = Math.min(3.2, width * 0.32)
   const position = useRef(useCarousel.getState().index)
+  const dive = useRef(0)
   // One ref object per world so each planet reads its own animated offset.
   const [offsetRefs] = useState(() => WORLDS.map(() => ({ current: 0 })))
 
-  useFrame((_, delta) => {
+  useFrame(({ camera }, delta) => {
+    const game = useGame.getState()
+    if (game.phase === 'zooming') {
+      // Accelerate into the centred planet, then hand over to the board.
+      dive.current = Math.min(1, dive.current + delta / DIVE_SECONDS)
+      // oxlint-disable-next-line react/immutability
+      camera.position.z = MathUtils.lerp(CAMERA_Z, DIVE_Z, easeInCubic(dive.current))
+      if (dive.current === 1) game.enterGame()
+    }
+
     const target = useCarousel.getState().index - drag.progress
     // Follow the pointer tightly while dragging, ease into place on release.
     position.current = reducedMotion
@@ -63,7 +77,7 @@ function Scene() {
 export function WorldCarousel() {
   return (
     <div className="canvas-layer" aria-hidden="true">
-      <Canvas camera={{ position: [0, 0, 6], fov: 40 }} dpr={[1, 2]}>
+      <Canvas camera={{ position: [0, 0, CAMERA_Z], fov: 40 }} dpr={[1, 2]}>
         <Scene />
       </Canvas>
     </div>

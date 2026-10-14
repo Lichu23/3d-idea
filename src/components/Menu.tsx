@@ -1,23 +1,27 @@
-import { useEffect, useRef, type CSSProperties } from 'react'
+import { useEffect, useRef } from 'react'
 import { useDrag } from '@use-gesture/react'
 import { Backdrop } from './Backdrop'
 import { WorldCarousel } from './WorldCarousel'
-import { drag, useCarousel, useCurrentWorld } from '../store'
-import { GAME_TITLE, WORLDS } from '../worlds'
+import { drag, useCarousel, useCurrentWorld, useGame } from '../store'
+import { GAME_TITLE, WORLDS, worldTheme } from '../worlds'
 
 export function Menu() {
   const next = useCarousel((s) => s.next)
   const prev = useCarousel((s) => s.prev)
   const world = useCurrentWorld()
+  const phase = useGame((s) => s.phase)
+  const play = useGame((s) => s.play)
+  const zooming = phase === 'zooming'
 
   useEffect(() => {
+    if (zooming) return
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'ArrowRight') next()
       else if (e.key === 'ArrowLeft') prev()
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [next, prev])
+  }, [next, prev, zooming])
 
   const stage = useRef<HTMLDivElement>(null)
 
@@ -35,20 +39,16 @@ export function Menu() {
         drag.progress = 0
       }
     },
-    { axis: 'x', filterTaps: true, pointer: { capture: true } },
+    { axis: 'x', filterTaps: true, pointer: { capture: true }, enabled: !zooming },
   )
 
   return (
     <main
       className="menu"
       data-world={world.id}
-      style={
-        {
-          '--bg-glow': world.glow,
-          '--accent': world.accent,
-          '--accent-text': world.accentText,
-        } as CSSProperties
-      }
+      data-phase={phase}
+      inert={zooming}
+      style={worldTheme(world)}
     >
       <Backdrop active={world.id} />
       <h1 className="title">{GAME_TITLE}</h1>
@@ -77,10 +77,15 @@ export function Menu() {
       </dl>
 
       <nav className="actions" aria-label="Main menu">
-        <button type="button" className="btn btn-primary">Play</button>
+        <button type="button" className="btn btn-primary" onClick={play}>
+          Play
+        </button>
         <button type="button" className="btn">Guide</button>
         <button type="button" className="btn">Options</button>
       </nav>
+
+      {/* Washes the screen in the world's colour as the camera reaches the surface. */}
+      <div className="zoom-veil" aria-hidden="true" />
     </main>
   )
 }

@@ -409,11 +409,122 @@ body {
   opacity: 0.7;
 }
 
+/* ---------- Zoom into a world ---------- */
+
+/* Declared on the themed screens so it resolves with each world's colours. */
+.menu,
+.board-screen {
+  --veil: color-mix(in srgb, var(--bg-glow) 65%, var(--accent));
+}
+
+.menu > :not(.stage, .backdrop, .zoom-veil) {
+  transition: opacity 0.35s ease, translate 0.35s ease;
+}
+
+.menu[data-phase='zooming'] > :not(.stage, .backdrop, .zoom-veil) {
+  opacity: 0;
+  translate: 0 12px;
+}
+
+.menu[data-phase='zooming'] .title {
+  translate: 0 -12px;
+}
+
+.zoom-veil {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background: var(--veil);
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* Starts late so the planet visibly rushes in before the colour takes over. */
+.menu[data-phase='zooming'] .zoom-veil {
+  opacity: 1;
+  transition: opacity 0.6s ease-in 0.8s;
+}
+
+/* ---------- Game board ---------- */
+
+.board-screen {
+  position: relative;
+  isolation: isolate;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.5rem;
+  padding: 1rem 1rem 2rem;
+  background: radial-gradient(circle at 50% 55%, var(--bg-glow), var(--bg) 75%);
+}
+
+/* Picks up from the menu's veil so the dive reads as one continuous move. */
+.board-screen::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background: var(--veil);
+  pointer-events: none;
+  animation: veil-out 0.7s ease-out forwards;
+}
+
+@keyframes veil-out {
+  to {
+    opacity: 0;
+  }
+}
+
+.board-screen[data-world='candy'] {
+  --radius: 999px;
+}
+
+.board-screen[data-world='moon'] {
+  --radius: 12px;
+}
+
+.hud {
+  width: 100%;
+  max-width: 1100px;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.hud-world {
+  margin: 0;
+  font-size: 0.85rem;
+  font-weight: 400;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.board {
+  width: min(100%, 70dvh, 640px);
+  aspect-ratio: 1;
+  margin: auto 0;
+  border: 1px solid color-mix(in srgb, var(--accent) 45%, var(--border));
+  border-radius: 8px;
+  background:
+    linear-gradient(color-mix(in srgb, var(--accent) 10%, transparent) 1px, transparent 1px) 0 0 / 12.5% 12.5%,
+    linear-gradient(90deg, color-mix(in srgb, var(--accent) 10%, transparent) 1px, transparent 1px) 0 0 / 12.5% 12.5%,
+    rgb(0 0 0 / 0.25);
+  box-shadow: 0 0 60px color-mix(in srgb, var(--accent) 15%, transparent);
+}
+
 @media (prefers-reduced-motion: reduce) {
   .menu,
+  .menu > :not(.stage, .backdrop, .zoom-veil),
   .btn,
   .backdrop-layer {
     transition: none;
+  }
+
+  .board-screen::after {
+    animation: none;
+    opacity: 0;
   }
 
   .backdrop * {

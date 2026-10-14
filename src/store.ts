@@ -1,5 +1,23 @@
 import { create } from 'zustand'
+import { reducedMotion } from './reducedMotion'
 import { WORLDS } from './worlds'
+
+/** `zooming` is the camera dive into the selected world between menu and board. */
+export type Phase = 'menu' | 'zooming' | 'game'
+
+interface GameState {
+  phase: Phase
+  play: () => void
+  enterGame: () => void
+  exitToMenu: () => void
+}
+
+export const useGame = create<GameState>((set) => ({
+  phase: 'menu',
+  play: () => set((s) => (s.phase === 'menu' ? { phase: reducedMotion ? 'game' : 'zooming' } : s)),
+  enterGame: () => set({ phase: 'game' }),
+  exitToMenu: () => set({ phase: 'menu' }),
+}))
 
 interface CarouselState {
   /** Unbounded index so the animation can travel the short way around the loop. */

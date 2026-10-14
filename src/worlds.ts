@@ -1,3 +1,5 @@
+import type { CSSProperties } from 'react'
+
 export type WorldId = 'earth' | 'candy' | 'moon'
 
 export interface WorldFact {
@@ -19,6 +21,14 @@ export interface World {
 }
 
 export const GAME_TITLE = 'FALLAWAY'
+
+/** CSS custom properties that theme a screen for the given world. */
+export const worldTheme = (world: World) =>
+  ({
+    '--bg-glow': world.glow,
+    '--accent': world.accent,
+    '--accent-text': world.accentText,
+  }) as CSSProperties
 
 export const WORLDS: readonly World[] = [
   {
