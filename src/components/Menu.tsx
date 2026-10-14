@@ -1,9 +1,16 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, type CSSProperties } from 'react'
 import { useDrag } from '@use-gesture/react'
 import { Backdrop } from './Backdrop'
 import { WorldCarousel } from './WorldCarousel'
 import { drag, useCarousel, useCurrentWorld, useGame } from '../store'
+import { DIVE_SECONDS, VEIL_START } from '../transition'
 import { GAME_TITLE, WORLDS, worldTheme } from '../worlds'
+
+// The wash covers the tail of the dive and is fully opaque as the board takes over.
+const VEIL_TIMING = {
+  '--veil-delay': `${DIVE_SECONDS * VEIL_START}s`,
+  '--veil-duration': `${DIVE_SECONDS * (1 - VEIL_START)}s`,
+} as CSSProperties
 
 export function Menu() {
   const next = useCarousel((s) => s.next)
@@ -51,12 +58,11 @@ export function Menu() {
       style={worldTheme(world)}
     >
       <Backdrop active={world.id} />
+      <WorldCarousel stageRef={stage} />
       <h1 className="title">{GAME_TITLE}</h1>
 
       <div className="stage" ref={stage}>
-        <div className="drag-surface" {...bind()}>
-          <WorldCarousel />
-        </div>
+        <div className="drag-surface" {...bind()} />
       </div>
 
       <div aria-live="polite">
@@ -85,7 +91,7 @@ export function Menu() {
       </nav>
 
       {/* Washes the screen in the world's colour as the camera reaches the surface. */}
-      <div className="zoom-veil" aria-hidden="true" />
+      <div className="zoom-veil" aria-hidden="true" style={VEIL_TIMING} />
     </main>
   )
 }
